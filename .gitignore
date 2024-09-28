@@ -1,0 +1,6 @@
+*.bak
+*.txt
+__pycache__/
+Test.*
+test.*
+Contacts.json
