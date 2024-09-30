@@ -1,6 +1,7 @@
 *.bak
 *.txt
 __pycache__/
+.idea/
 Test.*
 test.*
 Contacts.json

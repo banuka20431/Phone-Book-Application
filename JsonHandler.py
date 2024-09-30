@@ -18,7 +18,7 @@ class JsonHandler:
             JSONfile.write(']')
 
     @staticmethod
-    def read() -> list[object]:
+    def read() -> list[Contact]:
         contact_list = []
         with open("Contacts.json", "r") as JSONfile:
             json_data = json.load(JSONfile)  

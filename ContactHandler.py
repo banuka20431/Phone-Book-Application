@@ -19,24 +19,41 @@ class ContactHandler:
             else:
                 break
         return id
+    
+    @staticmethod
+    def validate(data_field_name: str, data: str) -> bool:
+        match data_field_name:
+            case 'name':
+                valid_pattern = re.compile(r"^([a-zA-Z]+\s?)+$")
+            case 'email':
+                valid_pattern = re.compile(r"^(www.)?[A-Za-z0-9_.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+            case 'phone_number':
+                valid_pattern = re.compile(r"^(\+94|0)[0-9]{9}")
+        if valid_pattern.fullmatch(data):
+            return True
+        return False
 
     def __init__(self, contact_list: list[Contact], contact_types_arr: tuple, PASSKEY: str) -> None:
         self.contact_list = contact_list
         self.contact_type_names = contact_types_arr
         self.PASSKEY = PASSKEY
 
-    def create_new_contact(self) -> Contact:
-        contact_name = self.__getcontactname()
-        contact_email = self.__getemail()
-        contact_phoneNumbers = [self.__getphonenumber(), ]
-        contact_types = [self.__getcontacttype(), ]
-        return Contact(contact_name, contact_email, contact_phoneNumbers, contact_types)
-
+    def create_new_contact(self, inf: tuple=None) -> Contact:
+        if inf is None:
+            contact_name = self.__getcontactname()
+            contact_email = self.__getemail()
+            contact_phoneNumbers = [self.__getphonenumber(), ]
+            contact_types = [self.__getcontacttype(), ]
+            return Contact(contact_name, contact_email, contact_phoneNumbers, contact_types)
+        else:
+            return Contact(*inf)
+        
+    
     def search_contact(self) -> Contact | None:
         method = self.__getsearchmethod()
         match method:
             case 'Name':
-                return self.__search_byname(self.__getcontactname())
+                return self.search_byname(self.__getcontactname())
             case 'Email':
                 return self.__search_byemail(self.__getemail())
             case 'Phone Number':
@@ -67,9 +84,9 @@ class ContactHandler:
         print('\nSELECT A FIELD FOR THE UPDATE >\n')
         return fields[self.displayMenus(fields)]
 
-    def __search_byname(self, search_str: str) -> Contact | None:
+    def search_byname(self, search_str: str) -> Contact | None:
         for contact in self.contact_list:
-            if contact.get_contact_name() == search_str:
+            if contact.get_contact_name().lower() == search_str.lower():
                 return contact
         return None
 
@@ -91,29 +108,27 @@ class ContactHandler:
         return methods[self.displayMenus(methods)]
 
     def __getcontactname(self) -> str:
-        valid_pattern = re.compile(r"^([a-zA-Z]+\s?)+$")
         while True:
             name = input("\nENTER CONTACT'S NAME : ")
-            if valid_pattern.fullmatch(name):
+            if self.validate('name', name):
                 return name
             print('(-) Error : Invalid Input!')
 
     def __getemail(self) -> str:
-        valid_pattern = re.compile(r"^(www.)?[A-Za-z0-9_.%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
         while True:
             email = input("\nENTER CONTACT'S EMAIL ADDRESS : ")
-            if valid_pattern.fullmatch(email):
+            if self.validate('email', email):
                 return email
             print('(-) Error : Invalid Input!')
 
     def __getphonenumber(self) -> str:
-        valid_pattern = re.compile(r"^(\+94|0)[0-9]{9}")
         while True:
             phone_number = input("\nENTER THE CONTACT'S PHONE NUMBER [07********] : ")
-            if valid_pattern.fullmatch(phone_number):
+            if self.validate('phone_number', phone_number):
                 return phone_number
             print('(-) Error : Invalid Input!')
 
     def __getcontacttype(self) -> str:
         print('\nSELECT THE CONTACT TYPE >\n')
         return self.contact_type_names[self.displayMenus(self.contact_type_names)]
+    

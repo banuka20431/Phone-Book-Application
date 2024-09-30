@@ -2,6 +2,7 @@ from Contact import Contact
 from ContactHandler import ContactHandler
 from JsonHandler import JsonHandler
 import os
+import gui
 
 
 def do_continue() -> bool:
@@ -12,7 +13,7 @@ def do_continue() -> bool:
         return False
     return True
 
-
+6
 def contactexists(matched_contact: Contact):
     if matched_contact is None:
         print("\nContact couldn't be found!")
@@ -68,6 +69,8 @@ def main(selected_action: str) -> list[Contact]:
                 print("\nAll contacts cleared!")
             else:
                 print("\nIncorrect passkey!")
+        case 'Run GUI':
+            gui.runGUI()
 
     return contact_list
 
@@ -77,7 +80,7 @@ if __name__ == "__main__":
     PASSKEY = "1234"
     JSON_FILE_PATH = r'Contacts.json'
     contact_types = ("HOME", "WORK", "PUBLIC", "SERVICE", "PERSONAL")
-    main_menu = ("SAVE", "DELETE", "UPDATE", "SEARCH", "CLEAR")
+    main_menu = ("SAVE", "DELETE", "UPDATE", "SEARCH", "CLEAR", "Run GUI")
     contact_list: list[Contact] = []
 
     print(
