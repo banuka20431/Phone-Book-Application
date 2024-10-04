@@ -29,29 +29,38 @@ def getprimaryphnumberlist() -> list:
 
 
 def getgeometry(root: BaseWidget | Tk, box_width: int, box_height: int) -> str:
-    base_x: int = root.winfo_x()
-    base_y: int = root.winfo_y()
+    
+    """
+    Calculate popup windows' x and y points on the screen for suitable positioning
+    """
+
+    base_x_position: int = root.winfo_x()
+    base_y_positiion: int = root.winfo_y()
     base_width: int = root.winfo_width()
     base_height: int = root.winfo_height()
+
     if base_height == box_height and base_width == box_width:
-        box_x_pos = base_x + MENU_OFFSET
-        box_y_pos = base_y + MENU_OFFSET
+        box_x_pos = base_x_position + LAYER_OFFSET
+        box_y_pos = base_y_positiion + LAYER_OFFSET
     elif base_height > box_height:
-        box_y_pos = base_y + (base_height - box_height) // 2
+        box_y_pos = base_y_positiion + (base_height - box_height) // 2
         if base_width == box_width:
-            box_x_pos = base_x
+            box_x_pos = base_x_position
         elif base_width > box_width:
-            box_x_pos = base_x + (base_width - box_width) // 2
+            box_x_pos = base_x_position + (base_width - box_width) // 2
         else:
-            box_x_pos = base_x - (box_width - base_width) // 2
+            box_x_pos = base_x_position - (box_width - base_width) // 2
     else:
-        box_y_pos = base_y + MENU_OFFSET
-        box_x_pos = base_x + MENU_OFFSET
+        box_y_pos = base_y_positiion + LAYER_OFFSET
+        box_x_pos = base_x_position + LAYER_OFFSET
 
     return f"{box_width}x{box_height}+{box_x_pos}+{box_y_pos}"
 
 
-def show_messagebox(root: BaseWidget | Tk, image_path: str, title: str, msg: str, dimensions: tuple):
+def show_messagebox(
+    root: BaseWidget | Tk, image_path: str, title: str, msg: str, dimensions: tuple
+):
+
     msgbox_width, msgbox_height = dimensions
 
     msgbox = Toplevel(root)
@@ -65,18 +74,18 @@ def show_messagebox(root: BaseWidget | Tk, image_path: str, title: str, msg: str
     icon_label = Label(msgbox, image=image_path)
     icon_label.grid(row=0, column=0, pady=(40, 10), padx=(20, 10))
 
-    msg_label = Label(msgbox, text=msg, font="Monospace 10 bold", anchor='center')
+    msg_label = Label(msgbox, text=msg, font="Monospace 10 bold", anchor="center")
     msg_label.grid(row=0, column=1, columnspan=2)
 
     b1 = Button(msgbox, text="OK", command=msgbox.destroy, width=15)
-    b1.grid(row=1, column=1, sticky='', padx=(55, 0))
+    b1.grid(row=1, column=1, sticky="", padx=(55, 0))
 
 
 def capitalized_name(name: str) -> str:
     return " ".join([n.capitalize() for n in name.split(" ")])
 
 
-def formatted_ph_number(phno: str) -> str:
+def formatted_phone_number(phno: str) -> str:
     return "-".join([phno[:3], phno[3:]])
 
 
@@ -85,16 +94,24 @@ def select_item(selected_rows: tuple):
     try:
         selected_contact_name, _ = contact_table.item(selected_rows[0])["values"]
     except IndexError:
-        # messagebox.showwarning("Phone Book", "0 CONTACTS SELECTED", )
-        show_messagebox(root_window, WARNING_ICO, "Warning", "0 Contacts Selected", dimensions=(250, 120))
+        show_messagebox(
+            root_window,
+            WARNING_ICO,
+            "Warning",
+            "0 Contacts Selected",
+            dimensions=(250, 120),
+        )
     else:
         return ct_handler.search_byname(selected_contact_name.lower())
 
 
 def prompt_save_contact(*_) -> None:
+
+    root_window.attributes("-topmost", False)
+
     """
     inner func
-    validate entered new contact info
+    validate entered contact info
     and shows a message which depending on the invalid data field
     """
 
@@ -114,11 +131,16 @@ def prompt_save_contact(*_) -> None:
             return False
         output_label["foreground"] = "lightgreen"
         output_var.set("Contact Saved")
+
         return (
             name_var.get(),
             email_var.get(),
-            [phone_number_var.get(), ],
-            [contact_type_var.get(), ],
+            [
+                phone_number_var.get(),
+            ],
+            [
+                contact_type_var.get(),
+            ],
         )
 
     """
@@ -137,7 +159,9 @@ def prompt_save_contact(*_) -> None:
             JsonHandler.write(update_ct_list)
             # formats the info which wil be displayed on the main window
             name = capitalized_name(new_contact.get_contact_name())
-            phone_no = formatted_ph_number(new_contact.get_contact_Phone_numbers()[0])
+            phone_no = formatted_phone_number(
+                new_contact.get_contact_Phone_numbers()[0]
+            )
             # displays the contact basic info on the main window
             contact_table.insert(parent="", index=tk.END, values=(name, phone_no))
             # reset the input fields
@@ -149,7 +173,6 @@ def prompt_save_contact(*_) -> None:
     inner func
     cleat out any changes of 'save contact' window
     """
-
     def clear_entered_info():
         name_var.set("")
         email_var.set("")
@@ -241,44 +264,150 @@ def prompt_save_contact(*_) -> None:
 
 
 def prompt_contact_info(*_):
+
+    def set_primary_number():
+        try:
+            selected_ph_no, _ = info_table.item(info_table.selection()[0])["values"]
+            selected_ph_no = selected_ph_no[:3] + selected_ph_no[4:]
+        except IndexError:
+            show_messagebox(
+                display_contact_info_window,
+                WARNING_ICO,
+                "Warning",
+                "0 Contacts Selected",
+                dimensions=(250, 120),
+            )
+        else:
+            ct_list = getcontactlist()
+            for contact in ct_list:
+                if selected_ph_no in contact.get_contact_Phone_numbers():
+
+                    phone_no_list = contact.get_contact_Phone_numbers()
+                    contact_type_list = contact.get_contact_type_list()
+
+                    selected_ph_no_index = phone_no_list.index(selected_ph_no)
+
+                    phone_no_list.insert(0, phone_no_list.pop(selected_ph_no_index))
+                    contact_type_list.insert(
+                        0, contact_type_list.pop(selected_ph_no_index)
+                    )
+
+                    contact.setPhoneNumberList(phone_no_list)
+                    contact.setContactTypes(contact_type_list)
+
+                    contact_table.delete(contact_table.selection()[0])
+                    contact_table.insert(
+                        parent="",
+                        index=0,
+                        values=(
+                            capitalized_name(contact.get_contact_name()),
+                            formatted_phone_number(selected_ph_no),
+                        ),
+                    )
+                    msg = f"Primary Phone Number of the \nContact '{capitalized_name(matched_contact.get_contact_name())}' Changed"
+                    show_messagebox(
+                        root_window, WARNING_ICO, "Warning", msg, dimensions=(360, 120)
+                    )
+                    display_contact_info_window.destroy()
+
+                    JsonHandler.write(ct_list)
+
+                    break
+
+    def delete_phone_number():
+        ct_list = getcontactlist()
+        try:
+            selected_phone_number, _ = info_table.item(info_table.selection()[0])[
+                "values"
+            ]
+        except IndexError:
+            show_messagebox(
+                display_contact_info_window,
+                WARNING_ICO,
+                "Warning",
+                "0 Contacts Selected",
+                dimensions=(250, 120),
+            )
+        else:
+            selected_phone_number = (
+                selected_phone_number[:3] + selected_phone_number[4:]
+            )
+            for contact in ct_list:
+                if selected_phone_number in contact.get_contact_Phone_numbers():
+                    phone_numbers_list = contact.get_contact_Phone_numbers()
+                    contact_type_list = contact.get_contact_type_list()
+                    selected_phone_no_index = phone_numbers_list.index(
+                        selected_phone_number
+                    )
+                    phone_numbers_list.remove(selected_phone_number)
+                    contact_type_list.remove(contact_type_list[selected_phone_no_index])
+                    contact.setPhoneNumberList(phone_numbers_list)
+                    contact.setContactTypes(contact_type_list)
+                    JsonHandler.write(ct_list)
+
+                    info_table.delete(info_table.selection()[0])
+
+                    show_messagebox(
+                        display_contact_info_window,
+                        WARNING_ICO,
+                        "Warning",
+                        "Phone Number Deleted",
+                        dimensions=(300, 120),
+                    )
+                    break
+
+    root_window.attributes("-topmost", False)
     matched_contact = select_item(contact_table.selection())
 
     if matched_contact is not None:
         display_contact_info_window = tk.Toplevel()
-        width = 500
-        height = 180
+        width = 440
+        height = 440
         display_contact_info_window.title("Contact Info")
         display_contact_info_window.geometry(getgeometry(root_window, width, height))
         display_contact_info_window.resizable(False, False)
 
         contact_info_frame = ttk.Frame(master=display_contact_info_window)
-        contact_info_frame.pack(padx=30, pady=5, fill="both", expand=True)
+        contact_info_frame.pack(padx=20, pady=20)
 
         text_name = ttk.Label(
             master=contact_info_frame,
-            text="Name :",
+            text="Contact's Name :",
             font=MONOSPACE_BOLD,
             foreground="red",
+            anchor="center",
         )
-        text_name.pack(side="left", padx=10, pady=10)
+        text_name.grid(row=0, column=0, pady=(5, 10))
 
         name_entry = ttk.Label(
-            master=contact_info_frame, text=matched_contact.get_contact_name().upper()
+            master=contact_info_frame,
+            text=matched_contact.get_contact_name().upper(),
+            anchor="w",
         )
-        name_entry.pack(side="left", padx=3, pady=10)
+        name_entry.grid(row=0, column=1, sticky="w")
 
         email_label = ttk.Label(
             master=contact_info_frame,
-            text="Email :",
+            text="Contact's Email :",
             font=MONOSPACE_BOLD,
             foreground="red",
+            anchor="center",
         )
-        email_label.pack(side="left", padx=10, pady=10)
+        email_label.grid(row=1, column=0, pady=10)
 
         text_email = ttk.Label(
             master=contact_info_frame, text=matched_contact.get_contact_email()
         )
-        text_email.pack(side="left", padx=3, pady=10)
+        text_email.grid(row=1, column=1, sticky="w")
+
+        text_name = ttk.Label(
+            master=contact_info_frame,
+            text="Contact's Phone Numbers",
+            font=MONOSPACE_BOLD,
+            foreground="red",
+            anchor="center",
+        )
+        text_name.grid(row=2, column=0, columnspan=2, pady=(10, 0))
 
         info_table = ttk.Treeview(
             master=display_contact_info_window,
@@ -291,23 +420,52 @@ def prompt_contact_info(*_):
 
         for phone_no in matched_contact.get_contact_Phone_numbers():
             contact_type = matched_contact.get_contact_contact_type(phone_no)
-            info_table.insert(parent="", index=tk.END, values=(phone_no, contact_type))
+            info_table.insert(
+                parent="",
+                index=tk.END,
+                values=(formatted_phone_number(phone_no), contact_type),
+            )
 
         for column in info_table["columns"]:
             info_table.column(column, anchor="center")
             info_table.heading(column, text=column)
 
-        info_table.pack(fill="both", expand=True)
+        info_table.pack()
+
+        contact_info_action_frame = ttk.Frame(master=display_contact_info_window)
+
+        contact_info_action_frame.pack()
+
+        phone_number_delete_btn = ttk.Button(
+            master=contact_info_action_frame,
+            text="Delete Selected Number",
+            command=delete_phone_number,
+            padding=10,
+        )
+
+        phone_number_delete_btn.grid(
+            row=0, column=0, sticky="we", padx=10, pady=(10, 20)
+        )
+
+        set_primary_no_btn = ttk.Button(
+            master=contact_info_action_frame,
+            text="Change to Primary Number",
+            command=set_primary_number,
+            padding=10,
+        )
+
+        set_primary_no_btn.grid(row=0, column=1, sticky="we", padx=10, pady=(10, 20))
 
         display_contact_info_window.mainloop()
 
 
 def prompt_delete_contact(*_):
+    root_window.attributes("-topmost", False)
     matched_contact = select_item(contact_table.selection())
     if matched_contact is not None:
         if messagebox.askyesno(
-                "Phone Book",
-                f"Do you want to delete '{capitalized_name(matched_contact.get_contact_name())}' from the contacts",
+            "Phone Book",
+            f"Do you want to delete '{capitalized_name(matched_contact.get_contact_name())}' from the contacts",
         ):
             contact_table.delete(contact_table.selection()[0])
             contact_list = getcontactlist()
@@ -319,12 +477,14 @@ def prompt_delete_contact(*_):
 
 
 def prompt_update_contact(*_):
+    root_window.attributes("-topmost", False)
+
     def save_new_name():
         contact_table.delete(contact_table.selection()[0])
         ct_lst = getcontactlist()
         ct_handler = ContactHandler()
         new_name = capitalized_name(new_name_var.get())
-        if ct_handler.validate('name', new_name):
+        if ct_handler.validate("name", new_name):
             for contact in ct_lst:
                 if matched_contact.get_contact_name() == contact.get_contact_name():
                     old_name = capitalized_name(matched_contact.get_contact_name())
@@ -333,15 +493,25 @@ def prompt_update_contact(*_):
                     matched_contact.setname(new_name)
                     ct_lst.insert(contact_index, matched_contact)
                     JsonHandler.write(ct_lst)
-                    contact_table.insert(parent='', index=0,
-                                         values=(new_name, formatted_ph_number(contact.get_contact_Phone_numbers()[0])))
+                    contact_table.insert(
+                        parent="",
+                        index=0,
+                        values=(
+                            new_name,
+                            formatted_phone_number(
+                                contact.get_contact_Phone_numbers()[0]
+                            ),
+                        ),
+                    )
                     msg = f"Contact email '{old_name}' Changed to '{new_name}'"
-                    show_messagebox(root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120))
+                    show_messagebox(
+                        root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120)
+                    )
                     break
         else:
             msg = "Invalid Contact Name \nPlease Enter a Valid Name"
             show_messagebox(root_window, ERROR_ICO, "Error", msg, dimensions=(280, 120))
-            new_name_var.set('')
+            new_name_var.set("")
 
         update_contact_window.destroy()
 
@@ -349,7 +519,7 @@ def prompt_update_contact(*_):
         ct_handler = ContactHandler(None, None, None)
         ct_lst = getcontactlist()
         new_email = new_email_var.get()
-        if ct_handler.validate('email', new_email):
+        if ct_handler.validate("email", new_email):
             for contact in ct_lst:
                 old_email = contact.get_contact_email()
                 if matched_contact.get_contact_email() == contact.get_contact_email():
@@ -358,14 +528,82 @@ def prompt_update_contact(*_):
                     matched_contact.setEmail(new_email)
                     ct_lst.insert(contact_index, matched_contact)
                     JsonHandler.write(ct_lst)
-                    msg = f"Contact name '{old_email}' \nChanged to '{new_email}'"
-                    show_messagebox(root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120))
+                    msg = f"Contact Email '{old_email}' \nChanged to '{new_email}'"
+                    show_messagebox(
+                        root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120)
+                    )
                     break
         else:
             msg = "Invalid Email \nPlease Enter a Valid Email"
             show_messagebox(root_window, ERROR_ICO, "Error", msg, dimensions=(280, 120))
 
         update_contact_window.destroy()
+
+    def save_phone_number():
+        ct_handler = ContactHandler(None, None, None)
+        ct_lst = getcontactlist()
+        new_phone_number = new_phone_number_var.get()
+        new_contact_type = new_contact_type_var.get()
+
+        if ct_handler.validate("phone_number", new_phone_number):
+            if do_replace_phone_number_var.get():
+                old_phone_number = replace_phone_number_var.get()
+                for contact in ct_lst:
+                    if old_phone_number in contact.get_contact_Phone_numbers():
+                        contact_index = ct_lst.index(contact)
+                        ct_lst.remove(contact)
+                        matched_contact.setPhoneNumber(
+                            old_phone_number,
+                            new_contact_type,
+                            new_phone_number,
+                            replace=True,
+                        )
+                        ct_lst.insert(contact_index, matched_contact)
+                        JsonHandler.write(ct_lst)
+                        msg = f"Contact Phone Number '{old_phone_number}' \nChanged to '{new_phone_number}'"
+                        show_messagebox(
+                            root_window, INFO_ICO, "Warning", msg, dimensions=(350, 120)
+                        )
+                        contact_table.delete(contact_table.selection()[0])
+                        contact_table.insert(
+                            parent="",
+                            index=0,
+                            values=(
+                                capitalized_name(matched_contact.get_contact_name()),
+                                formatted_phone_number(
+                                    matched_contact.get_contact_Phone_numbers()[0]
+                                ),
+                            ),
+                        )
+                        break
+            else:
+                primary_phone_number = matched_contact.get_contact_Phone_numbers()[0]
+                for contact in ct_lst:
+                    if primary_phone_number in contact.get_contact_Phone_numbers():
+                        contact_index = ct_lst.index(contact)
+                        ct_lst.remove(contact)
+                        matched_contact.setPhoneNumber(
+                            new_phone_number, new_contact_type
+                        )
+                        ct_lst.insert(contact_index, matched_contact)
+                        JsonHandler.write(ct_lst)
+                        msg = f"New Phone Number '{formatted_phone_number(new_phone_number)}' \nAdded to {capitalized_name(matched_contact.get_contact_name())}'s Phone Numbers"
+                        show_messagebox(
+                            root_window, INFO_ICO, "Warning", msg, dimensions=(420, 120)
+                        )
+                        break
+
+        else:
+            msg = "Invalid Phone Number \nPlease Enter a Valid Phone Number"
+            show_messagebox(root_window, ERROR_ICO, "Error", msg, dimensions=(330, 120))
+
+        update_contact_window.destroy()
+
+    def reset_save_phone_number_frame():
+        new_phone_number_var.set("")
+        new_contact_type_var.set(CONTACT_TYPES[0])
+        do_replace_phone_number_var.set(False)
+        replace_phone_number_entry["state"] = "disable"
 
     matched_contact = select_item(contact_table.selection())
     if matched_contact is not None:
@@ -429,16 +667,19 @@ def prompt_update_contact(*_):
             master=frame_update_name, textvariable=new_name_var, width=25
         )
 
-        new_name_entry.grid(row=3, column=1, columnspan=2, sticky='we', padx=5)
+        new_name_entry.grid(row=3, column=1, columnspan=2, sticky="we", padx=5)
 
         new_name_enter_btn = ttk.Button(
             master=frame_update_name, text="Enter", padding=5, command=save_new_name
         )
 
-        new_name_enter_btn.grid(row=4, column=0, columnspan=2, sticky='we', padx=5)
+        new_name_enter_btn.grid(row=4, column=0, columnspan=2, sticky="we", padx=5)
 
         new_name_clear_btn = ttk.Button(
-            master=frame_update_name, text="Clear", padding=5, command=lambda: new_name_var.set('')
+            master=frame_update_name,
+            text="Clear",
+            padding=5,
+            command=lambda: new_name_var.set(""),
         )
 
         new_name_clear_btn.grid(row=4, column=2, columnspan=2, sticky="we", padx=5)
@@ -484,19 +725,114 @@ def prompt_update_contact(*_):
             master=frame_update_email, textvariable=new_email_var, width=25
         )
 
-        new_email_entry.grid(row=3, column=1, columnspan=2, sticky='we', padx=5)
+        new_email_entry.grid(row=3, column=1, columnspan=2, sticky="we", padx=5)
 
         new_email_enter_btn = ttk.Button(
             master=frame_update_email, text="Enter", padding=5, command=save_new_email
         )
 
-        new_email_enter_btn.grid(row=4, column=0, columnspan=2, sticky='we', padx=5)
+        new_email_enter_btn.grid(row=4, column=0, columnspan=2, sticky="we", padx=5)
 
         new_email_clear_btn = ttk.Button(
-            master=frame_update_email, text="Clear", padding=5, command=lambda: new_email_var.set('')
+            master=frame_update_email,
+            text="Clear",
+            padding=5,
+            command=lambda: new_email_var.set(""),
         )
 
         new_email_clear_btn.grid(row=4, column=2, columnspan=2, sticky="we", padx=5)
+
+        """
+        Update Phone Number or Add new phone number 
+        """
+
+        def disable_replace_entry():
+            replace_phone_number_entry["state"] = "disable"
+
+        def enable_replace_entry():
+            replace_phone_number_entry["state"] = "enable"
+
+        frame_update_phone_no.columnconfigure((0, 1, 2, 3, 4), weight=1)
+        frame_update_phone_no.rowconfigure((0, 1, 2, 3, 4), weight=1)
+
+        new_phone_number_var = tk.StringVar()
+        new_contact_type_var = tk.StringVar(value=CONTACT_TYPES[0])
+        do_replace_phone_number_var = tk.BooleanVar(value=False)
+        replace_phone_number_var = tk.StringVar(
+            value=matched_contact.get_contact_Phone_numbers()[0]
+        )
+
+        text_new_phone_number = ttk.Label(
+            master=frame_update_phone_no,
+            text="Enter New Phone Number",
+            anchor="center",
+            font=MONOSPACE_BOLD,
+            background="black",
+            foreground="white",
+            padding=3,
+        )
+
+        text_new_phone_number.grid(row=0, column=0, columnspan=5, sticky="we", pady=5)
+
+        new_phone_number_entry = ttk.Entry(
+            master=frame_update_phone_no, textvariable=new_phone_number_var
+        )
+
+        new_phone_number_entry.grid(row=1, column=0, columnspan=2, sticky="e")
+
+        new_contact_type_menu = ttk.OptionMenu(
+            frame_update_phone_no, new_contact_type_var, *CONTACT_TYPES
+        )
+
+        new_contact_type_menu.grid(row=1, column=3, columnspan=2, sticky="w")
+
+        replace_radio_button = ttk.Radiobutton(
+            master=frame_update_phone_no,
+            variable=do_replace_phone_number_var,
+            text="Replace",
+            command=enable_replace_entry,
+        )
+
+        replace_radio_button.grid(row=2, column=0, sticky="e", pady=5)
+
+        text_replace_phone_number = ttk.Label(
+            master=frame_update_phone_no,
+            text="Replace With:",
+            anchor="center",
+            font=MONOSPACE_BOLD,
+            background="black",
+            foreground="white",
+        )
+
+        text_replace_phone_number.grid(row=2, column=1, sticky="e")
+
+        replace_phone_number_entry = ttk.OptionMenu(
+            frame_update_phone_no,
+            replace_phone_number_var,
+            *matched_contact.get_contact_Phone_numbers(),
+        )
+
+        disable_replace_entry()
+
+        replace_phone_number_entry.grid(row=2, column=3, columnspan=2, sticky="w")
+
+        new_phone_number_enter_btn = ttk.Button(
+            master=frame_update_phone_no,
+            text="Enter",
+            padding=8,
+            command=save_phone_number,
+        )
+
+        new_phone_number_enter_btn.grid(row=4, column=0, columnspan=2, sticky="we")
+
+        new_phone_number_clear_btn = ttk.Button(
+            master=frame_update_phone_no,
+            text="Clear",
+            padding=8,
+            command=reset_save_phone_number_frame,
+        )
+
+        new_phone_number_clear_btn.grid(row=4, column=3, columnspan=2, sticky="we")
 
 
 def main() -> None:
@@ -545,7 +881,7 @@ def main() -> None:
 
     show_btn = ttk.Button(
         master=action_frame,
-        text="Show",
+        text="Info",
         width=ACTION_BTN_WIDTH,
         command=prompt_contact_info,
         padding=ACTION_BTN_PDN,
@@ -578,7 +914,7 @@ def main() -> None:
     """
     for name, phone_no in zip(CONTACT_NAMES, PHONE_NUMBERS):
         name = capitalized_name(name)
-        phone_no = formatted_ph_number(phone_no)
+        phone_no = formatted_phone_number(phone_no)
 
         contact_table.insert(parent="", index=tk.END, values=(name, phone_no))
 
@@ -598,9 +934,12 @@ def runGUI() -> None:
     global root_window
 
     root_window = tk.Tk()
+    root_window.attributes("-topmost", True)
     root_window.title("Phone Book")
     ROOT_POSITION_X = root_window.winfo_screenwidth() / 2 - ROOT_WINDOW_WIDTH / 2
-    ROOT_POSITION_Y = root_window.winfo_screenheight() / 2 - ROOT_WINDOW_HEIGHT / 2
+    ROOT_POSITION_Y = (
+        root_window.winfo_screenheight() / 2 - ROOT_WINDOW_HEIGHT / 2 
+    )
     root_window.geometry(
         f"{ROOT_WINDOW_WIDTH}x{ROOT_WINDOW_HEIGHT}+{int(ROOT_POSITION_X)}+{int(ROOT_POSITION_Y)}"
     )
@@ -617,15 +956,19 @@ PASSKEY = "1234"
 CONTACT_TYPES = ("HOME", "WORK", "PUBLIC", "SERVICE", "PERSONAL")
 CONTACT_NAMES = getnamelist()
 PHONE_NUMBERS = getprimaryphnumberlist()
-ROOT_WINDOW_WIDTH = 400
-ROOT_WINDOW_HEIGHT = 400
+ROOT_WINDOW_WIDTH = 450 
+ROOT_WINDOW_HEIGHT = 420
 MONOSPACE_ITALIC = "monospace 9 italic"
 MONOSPACE_BOLD = "monospace 10 bold"
-ACTION_BTN_WIDTH = 10
+ACTION_BTN_WIDTH = 12
 ACTION_BTN_MGN = 8
 ACTION_BTN_PDN = 8
 WARNING_ICO = "::tk::icons::warning"
 ERROR_ICO = "::tk::icons::error"
 INFO_ICO = "::tk::icons::information"
 QUESTION_ICO = "::tk::icons::question"
-MENU_OFFSET = 50
+LAYER_OFFSET = 25
+
+
+if __name__ == "__main__":
+    runGUI()

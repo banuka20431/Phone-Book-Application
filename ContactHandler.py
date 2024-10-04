@@ -70,12 +70,12 @@ class ContactHandler:
                 print('\nSELECT AN ACTION >\n')
                 action_id = self.displayMenus(('Add new phone number', 'Change existing phone number'))
                 if action_id == 0:
-                    contact.setPhoneNumbers(self.__getphonenumber(), self.__getcontacttype())
+                    contact.setPhoneNumber(self.__getphonenumber(), self.__getcontacttype())
                 else:
                     existing_phone_numbers = contact.get_contact_Phone_numbers()
                     print('\nSELECT A PHONE NUMBER TO CHANGE >\n')
                     selected_phone_number = existing_phone_numbers[self.displayMenus(existing_phone_numbers)]
-                    contact.setPhoneNumbers(selected_phone_number, self.__getcontacttype(), self.__getphonenumber(),
+                    contact.setPhoneNumber(selected_phone_number, self.__getcontacttype(), self.__getphonenumber(),
                                             True)
         return contact
 
