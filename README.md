@@ -43,7 +43,7 @@ There is also a graphical user interface (GUI) implemented with `python's tkinte
 
     **For Windows:**
    ```bash
-   pip install python-tk
+   pip install tk
    ```
 
 4. **Check External Dependencies**: 
