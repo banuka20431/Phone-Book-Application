@@ -18,10 +18,15 @@ def getnamelist() -> list:
 def getprimaryphnumberlist() -> list:
     phnumbers = []
     for contact in CONTACT_LIST:
-        phnumbers.append(contact.get_contact_Phone_numbers()[0])
+        try:
+            phnumbers.append(contact.get_contact_Phone_numbers()[0])
+        except IndexError:
+            CONTACT_LIST.remove(contact)
     return phnumbers
 
 def update_global_vars():
+    global CONTACT_NAMES, PHONE_NUMBERS
+    
     CONTACT_NAMES = getnamelist()
     PHONE_NUMBERS = getprimaryphnumberlist()
 
@@ -315,44 +320,53 @@ def prompt_contact_info(*_):
                     break
 
     def delete_phone_number():
-        try:
-            selected_phone_number, _ = info_table.item(info_table.selection()[0])[
-                "values"
-            ]
-        except IndexError:
-            show_messagebox(
+        if len(matched_contact.get_contact_Phone_numbers()) == 1:
+            show_messagebox( 
                 display_contact_info_window,
                 WARNING_ICO,
-                "Warning",
-                "0 Contacts Selected",
-                dimensions=(250, 120),
+                "Error",
+                "Must have atleast one phone number \nTip : Use update button to replace the number",
+                dimensions=(380, 120),
             )
-        else:
-            selected_phone_number = (
-                selected_phone_number[:3] + selected_phone_number[4:]
-            )
-            for contact in CONTACT_LIST:
-                if selected_phone_number in contact.get_contact_Phone_numbers():
-                    phone_numbers_list = contact.get_contact_Phone_numbers()
-                    contact_type_list = contact.get_contact_type_list()
-                    selected_phone_no_index = phone_numbers_list.index(
-                        selected_phone_number
-                    )
-                    phone_numbers_list.remove(selected_phone_number)
-                    contact_type_list.remove(contact_type_list[selected_phone_no_index])
-                    contact.setPhoneNumberList(phone_numbers_list)
-                    contact.setContactTypes(contact_type_list)
+        else :
+            try:
+                selected_phone_number, _ = info_table.item(info_table.selection()[0])[
+                    "values"
+                ]
+            except IndexError:
+                show_messagebox(
+                    display_contact_info_window,
+                    WARNING_ICO,
+                    "Warning",
+                    "0 Contacts Selected",
+                    dimensions=(250, 120),
+                )
+            else:
+                selected_phone_number = (
+                    selected_phone_number[:3] + selected_phone_number[4:]
+                )
+                for contact in CONTACT_LIST:
+                    if selected_phone_number in contact.get_contact_Phone_numbers():
+                        phone_numbers_list = contact.get_contact_Phone_numbers()
+                        contact_type_list = contact.get_contact_type_list()
+                        selected_phone_no_index = phone_numbers_list.index(
+                            selected_phone_number
+                        )
+                        phone_numbers_list.remove(selected_phone_number)
+                        contact_type_list.remove(contact_type_list[selected_phone_no_index])
+                        contact.setPhoneNumberList(phone_numbers_list)
+                        contact.setContactTypes(contact_type_list)
 
-                    info_table.delete(info_table.selection()[0])
+                        info_table.delete(info_table.selection()[0])
 
-                    show_messagebox(
-                        display_contact_info_window,
-                        WARNING_ICO,
-                        "Warning",
-                        "Phone Number Deleted",
-                        dimensions=(300, 120),
-                    )
-                    break
+                        show_messagebox(
+                            display_contact_info_window,
+                            WARNING_ICO,
+                            "Warning",
+                            "Phone Number Deleted",
+                            dimensions=(300, 120),
+                        )
+                        break
 
     root_window.attributes("-topmost", False)
     matched_contact = select_item(contact_table.selection())
@@ -476,7 +490,6 @@ def prompt_update_contact(*_):
     root_window.attributes("-topmost", False)
 
     def save_new_name():
-        contact_table.delete(contact_table.selection()[0])
         new_name = capitalized_name(new_name_var.get())
         if not Contact_Handler.validate("name", new_name):
             msg = "Invalid Contact Name \nPlease Enter a Valid Name"
@@ -505,13 +518,14 @@ def prompt_update_contact(*_):
                                 ),
                             ),
                         )
-                        msg = f"Contact email '{old_name}' Changed to '{new_name}'"
+                        msg = f"Contact name '{old_name}' \nChanged to '{new_name}'"
                         show_messagebox(
-                            root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120)
+                            root_window, INFO_ICO, "Warning", msg, dimensions=(350, 120)
                         )
                         update_global_vars()
+                        contact_table.delete(contact_table.selection()[0])
                         break
-        
+                    
         update_contact_window.destroy()
 
     def save_new_email():
@@ -526,7 +540,7 @@ def prompt_update_contact(*_):
                     CONTACT_LIST.insert(contact_index, matched_contact)
                     msg = f"Contact Email '{old_email}' \nChanged to '{new_email}'"
                     show_messagebox(
-                        root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120)
+                        root_window, INFO_ICO, "Warning", msg, dimensions=(380, 120)
                     )
                     break
         else:
@@ -555,7 +569,7 @@ def prompt_update_contact(*_):
                         CONTACT_LIST.insert(contact_index, matched_contact)
                         msg = f"Contact Phone Number '{old_phone_number}' \nChanged to '{new_phone_number}'"
                         show_messagebox(
-                            root_window, INFO_ICO, "Warning", msg, dimensions=(350, 120)
+                            root_window, INFO_ICO, "Warning", msg, dimensions=(320, 120)
                         )
                         contact_table.delete(contact_table.selection()[0])
                         contact_table.insert(
@@ -601,9 +615,9 @@ def prompt_update_contact(*_):
     matched_contact = select_item(contact_table.selection())
     if matched_contact is not None:
         update_contact_window = tk.Toplevel()
-        width = 350
+        width = 390
         height = 200
-        update_contact_window.title("Update Contact")
+        update_contact_window.title(f"Update Contact ({capitalized_name(matched_contact.get_contact_name())})")
         update_contact_window.geometry(getgeometry(root_window, width, height))
 
         update_contact_window.resizable(False, False)
