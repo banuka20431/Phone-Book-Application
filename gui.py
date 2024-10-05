@@ -8,28 +8,33 @@ from tkinter import *
 from tkinter import messagebox
 
 
-def getcontactlist() -> list[Contact]:
-    if os.path.getsize(JSON_FILE_PATH):
-        return JsonHandler.read()
-    return []
-
-
 def getnamelist() -> list:
     names = []
-    for contact in getcontactlist():
+    for contact in CONTACT_LIST:
         names.append(contact.get_contact_name())
     return names
 
 
 def getprimaryphnumberlist() -> list:
     phnumbers = []
-    for contact in getcontactlist():
+    for contact in CONTACT_LIST:
         phnumbers.append(contact.get_contact_Phone_numbers()[0])
     return phnumbers
 
+def update_global_vars():
+    CONTACT_NAMES = getnamelist()
+    PHONE_NUMBERS = getprimaryphnumberlist()
+
+
+def contains_ignore_case(str_list: list[str], text: str) -> bool:
+    to_lower = lambda s: "".join([chr.lower() for chr in s])
+    for s in str_list:
+        if to_lower(s) == to_lower(text):
+            return True
+    return False
+
 
 def getgeometry(root: BaseWidget | Tk, box_width: int, box_height: int) -> str:
-    
     """
     Calculate popup windows' x and y points on the screen for suitable positioning
     """
@@ -90,7 +95,6 @@ def formatted_phone_number(phno: str) -> str:
 
 
 def select_item(selected_rows: tuple):
-    ct_handler = ContactHandler(getcontactlist(), CONTACT_TYPES, PASSKEY)
     try:
         selected_contact_name, _ = contact_table.item(selected_rows[0])["values"]
     except IndexError:
@@ -102,7 +106,7 @@ def select_item(selected_rows: tuple):
             dimensions=(250, 120),
         )
     else:
-        return ct_handler.search_byname(selected_contact_name.lower())
+        return Contact_Handler.search_byname(selected_contact_name.lower())
 
 
 def prompt_save_contact(*_) -> None:
@@ -116,32 +120,32 @@ def prompt_save_contact(*_) -> None:
     """
 
     def is_contact_info_valid() -> tuple | bool:
+        state: bool = True
         output_label["background"] = "black"
         if not ContactHandler.validate("name", name_var.get()):
-            output_label["foreground"] = "red"
             output_var.set("invalid contact name")
-            return False
-        if not ContactHandler.validate("email", email_var.get()):
-            output_label["foreground"] = "red"
+            state = False
+        elif contains_ignore_case(CONTACT_NAMES, name_var.get()):
+            output_var.set("Contact Name Already Exists")
+            state = False
+        elif not ContactHandler.validate("email", email_var.get()):
             output_var.set("invalid email")
-            return False
-        if not ContactHandler.validate("phone_number", phone_number_var.get()):
-            output_label["foreground"] = "red"
+            state = False
+        elif not ContactHandler.validate("phone_number", phone_number_var.get()):
             output_var.set("invalid phone number")
-            return False
-        output_label["foreground"] = "lightgreen"
-        output_var.set("Contact Saved")
-
-        return (
-            name_var.get(),
-            email_var.get(),
-            [
-                phone_number_var.get(),
-            ],
-            [
-                contact_type_var.get(),
-            ],
-        )
+            state = False
+        
+        if not state:
+            output_label["foreground"] = "red"
+        else:
+            output_label["foreground"] = "lightgreen"
+            output_var.set("Contact Saved")
+            return (
+                name_var.get(), 
+                email_var.get(), 
+                [phone_number_var.get(),], 
+                [contact_type_var.get(),]
+            )
 
     """
     inner func
@@ -149,14 +153,11 @@ def prompt_save_contact(*_) -> None:
     """
 
     def process_new_contact_info():
-        ct_handler = ContactHandler(getcontactlist(), CONTACT_TYPES, PASSKEY)
         output_label["background"] = "black"
         if info := is_contact_info_valid():
-            # creates new contact object and saves in the json file
-            new_contact = ct_handler.create_new_contact(info)
-            update_ct_list = getcontactlist()
-            update_ct_list.append(new_contact)
-            JsonHandler.write(update_ct_list)
+            # creates new contact object and saves it
+            new_contact = Contact_Handler.create_new_contact(info)
+            CONTACT_LIST.append(new_contact)
             # formats the info which wil be displayed on the main window
             name = capitalized_name(new_contact.get_contact_name())
             phone_no = formatted_phone_number(
@@ -168,11 +169,13 @@ def prompt_save_contact(*_) -> None:
             name_var.set("")
             email_var.set("")
             phone_number_var.set("")
+            update_global_vars()
 
     """
     inner func
     cleat out any changes of 'save contact' window
     """
+
     def clear_entered_info():
         name_var.set("")
         email_var.set("")
@@ -278,8 +281,7 @@ def prompt_contact_info(*_):
                 dimensions=(250, 120),
             )
         else:
-            ct_list = getcontactlist()
-            for contact in ct_list:
+            for contact in CONTACT_LIST:
                 if selected_ph_no in contact.get_contact_Phone_numbers():
 
                     phone_no_list = contact.get_contact_Phone_numbers()
@@ -310,12 +312,9 @@ def prompt_contact_info(*_):
                     )
                     display_contact_info_window.destroy()
 
-                    JsonHandler.write(ct_list)
-
                     break
 
     def delete_phone_number():
-        ct_list = getcontactlist()
         try:
             selected_phone_number, _ = info_table.item(info_table.selection()[0])[
                 "values"
@@ -332,7 +331,7 @@ def prompt_contact_info(*_):
             selected_phone_number = (
                 selected_phone_number[:3] + selected_phone_number[4:]
             )
-            for contact in ct_list:
+            for contact in CONTACT_LIST:
                 if selected_phone_number in contact.get_contact_Phone_numbers():
                     phone_numbers_list = contact.get_contact_Phone_numbers()
                     contact_type_list = contact.get_contact_type_list()
@@ -343,7 +342,6 @@ def prompt_contact_info(*_):
                     contact_type_list.remove(contact_type_list[selected_phone_no_index])
                     contact.setPhoneNumberList(phone_numbers_list)
                     contact.setContactTypes(contact_type_list)
-                    JsonHandler.write(ct_list)
 
                     info_table.delete(info_table.selection()[0])
 
@@ -468,12 +466,10 @@ def prompt_delete_contact(*_):
             f"Do you want to delete '{capitalized_name(matched_contact.get_contact_name())}' from the contacts",
         ):
             contact_table.delete(contact_table.selection()[0])
-            contact_list = getcontactlist()
-            for ct in contact_list:
-                if ct.get_contact_name() == matched_contact.get_contact_name():
-                    contact_list.remove(ct)
+            for contact in CONTACT_LIST:
+                if contact.get_contact_name() == matched_contact.get_contact_name():
+                    CONTACT_LIST.remove(contact)
                     break
-            JsonHandler.write(contact_list)
 
 
 def prompt_update_contact(*_):
@@ -481,53 +477,53 @@ def prompt_update_contact(*_):
 
     def save_new_name():
         contact_table.delete(contact_table.selection()[0])
-        ct_lst = getcontactlist()
-        ct_handler = ContactHandler()
         new_name = capitalized_name(new_name_var.get())
-        if ct_handler.validate("name", new_name):
-            for contact in ct_lst:
-                if matched_contact.get_contact_name() == contact.get_contact_name():
-                    old_name = capitalized_name(matched_contact.get_contact_name())
-                    contact_index = ct_lst.index(contact)
-                    ct_lst.remove(contact)
-                    matched_contact.setname(new_name)
-                    ct_lst.insert(contact_index, matched_contact)
-                    JsonHandler.write(ct_lst)
-                    contact_table.insert(
-                        parent="",
-                        index=0,
-                        values=(
-                            new_name,
-                            formatted_phone_number(
-                                contact.get_contact_Phone_numbers()[0]
-                            ),
-                        ),
-                    )
-                    msg = f"Contact email '{old_name}' Changed to '{new_name}'"
-                    show_messagebox(
-                        root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120)
-                    )
-                    break
-        else:
+        if not Contact_Handler.validate("name", new_name):
             msg = "Invalid Contact Name \nPlease Enter a Valid Name"
             show_messagebox(root_window, ERROR_ICO, "Error", msg, dimensions=(280, 120))
             new_name_var.set("")
-
+        else:
+            if contains_ignore_case(CONTACT_NAMES, new_name):
+                msg = "Contact Name Already Exists"
+                show_messagebox(root_window, ERROR_ICO, "Error", msg, dimensions=(280, 120))
+                new_name_var.set("")
+            else: 
+                for contact in CONTACT_LIST:
+                    if matched_contact.get_contact_name() == contact.get_contact_name():
+                        old_name = capitalized_name(matched_contact.get_contact_name())
+                        contact_index = CONTACT_LIST.index(contact)
+                        CONTACT_LIST.remove(contact)
+                        matched_contact.setname(new_name)
+                        CONTACT_LIST.insert(contact_index, matched_contact)
+                        contact_table.insert(
+                            parent="",
+                            index=0,
+                            values=(
+                                new_name,
+                                formatted_phone_number(
+                                    contact.get_contact_Phone_numbers()[0]
+                                ),
+                            ),
+                        )
+                        msg = f"Contact email '{old_name}' Changed to '{new_name}'"
+                        show_messagebox(
+                            root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120)
+                        )
+                        update_global_vars()
+                        break
+        
         update_contact_window.destroy()
 
     def save_new_email():
-        ct_handler = ContactHandler(None, None, None)
-        ct_lst = getcontactlist()
         new_email = new_email_var.get()
-        if ct_handler.validate("email", new_email):
-            for contact in ct_lst:
+        if Contact_Handler.validate("email", new_email):
+            for contact in CONTACT_LIST:
                 old_email = contact.get_contact_email()
                 if matched_contact.get_contact_email() == contact.get_contact_email():
-                    contact_index = ct_lst.index(contact)
-                    ct_lst.remove(contact)
+                    contact_index = CONTACT_LIST.index(contact)
+                    CONTACT_LIST.remove(contact)
                     matched_contact.setEmail(new_email)
-                    ct_lst.insert(contact_index, matched_contact)
-                    JsonHandler.write(ct_lst)
+                    CONTACT_LIST.insert(contact_index, matched_contact)
                     msg = f"Contact Email '{old_email}' \nChanged to '{new_email}'"
                     show_messagebox(
                         root_window, INFO_ICO, "Warning", msg, dimensions=(520, 120)
@@ -540,26 +536,23 @@ def prompt_update_contact(*_):
         update_contact_window.destroy()
 
     def save_phone_number():
-        ct_handler = ContactHandler(None, None, None)
-        ct_lst = getcontactlist()
         new_phone_number = new_phone_number_var.get()
         new_contact_type = new_contact_type_var.get()
 
-        if ct_handler.validate("phone_number", new_phone_number):
+        if Contact_Handler.validate("phone_number", new_phone_number):
             if do_replace_phone_number_var.get():
                 old_phone_number = replace_phone_number_var.get()
-                for contact in ct_lst:
+                for contact in CONTACT_LIST:
                     if old_phone_number in contact.get_contact_Phone_numbers():
-                        contact_index = ct_lst.index(contact)
-                        ct_lst.remove(contact)
+                        contact_index = CONTACT_LIST.index(contact)
+                        CONTACT_LIST.remove(contact)
                         matched_contact.setPhoneNumber(
                             old_phone_number,
                             new_contact_type,
                             new_phone_number,
                             replace=True,
                         )
-                        ct_lst.insert(contact_index, matched_contact)
-                        JsonHandler.write(ct_lst)
+                        CONTACT_LIST.insert(contact_index, matched_contact)
                         msg = f"Contact Phone Number '{old_phone_number}' \nChanged to '{new_phone_number}'"
                         show_messagebox(
                             root_window, INFO_ICO, "Warning", msg, dimensions=(350, 120)
@@ -578,15 +571,14 @@ def prompt_update_contact(*_):
                         break
             else:
                 primary_phone_number = matched_contact.get_contact_Phone_numbers()[0]
-                for contact in ct_lst:
+                for contact in CONTACT_LIST:
                     if primary_phone_number in contact.get_contact_Phone_numbers():
-                        contact_index = ct_lst.index(contact)
-                        ct_lst.remove(contact)
+                        contact_index = CONTACT_LIST.index(contact)
+                        CONTACT_LIST.remove(contact)
                         matched_contact.setPhoneNumber(
                             new_phone_number, new_contact_type
                         )
-                        ct_lst.insert(contact_index, matched_contact)
-                        JsonHandler.write(ct_lst)
+                        CONTACT_LIST.insert(contact_index, matched_contact)
                         msg = f"New Phone Number '{formatted_phone_number(new_phone_number)}' \nAdded to {capitalized_name(matched_contact.get_contact_name())}'s Phone Numbers"
                         show_messagebox(
                             root_window, INFO_ICO, "Warning", msg, dimensions=(420, 120)
@@ -597,6 +589,7 @@ def prompt_update_contact(*_):
             msg = "Invalid Phone Number \nPlease Enter a Valid Phone Number"
             show_messagebox(root_window, ERROR_ICO, "Error", msg, dimensions=(330, 120))
 
+        update_global_vars()
         update_contact_window.destroy()
 
     def reset_save_phone_number_frame():
@@ -930,22 +923,32 @@ def main() -> None:
     contact_table.bind("<Control-d>", prompt_contact_info)
 
 
-def runGUI() -> None:
+def runGUI(contact_list: list[Contact]) -> None:
+
+    global PHONE_NUMBERS
+    global CONTACT_NAMES
+    global Contact_Handler
+    global CONTACT_LIST
     global root_window
+
+    CONTACT_LIST = contact_list
+    CONTACT_NAMES = getnamelist()
+    PHONE_NUMBERS = getprimaryphnumberlist()
+    Contact_Handler = ContactHandler(CONTACT_LIST, CONTACT_TYPES, PASSKEY)
 
     root_window = tk.Tk()
     root_window.attributes("-topmost", True)
     root_window.title("Phone Book")
     ROOT_POSITION_X = root_window.winfo_screenwidth() / 2 - ROOT_WINDOW_WIDTH / 2
-    ROOT_POSITION_Y = (
-        root_window.winfo_screenheight() / 2 - ROOT_WINDOW_HEIGHT / 2 
-    )
+    ROOT_POSITION_Y = root_window.winfo_screenheight() / 2 - ROOT_WINDOW_HEIGHT / 2
     root_window.geometry(
         f"{ROOT_WINDOW_WIDTH}x{ROOT_WINDOW_HEIGHT}+{int(ROOT_POSITION_X)}+{int(ROOT_POSITION_Y)}"
     )
     root_window.resizable(False, False)
     main()
     root_window.mainloop()
+
+    return CONTACT_LIST
 
 
 """
@@ -954,9 +957,7 @@ def runGUI() -> None:
 JSON_FILE_PATH = r"Contacts.json"
 PASSKEY = "1234"
 CONTACT_TYPES = ("HOME", "WORK", "PUBLIC", "SERVICE", "PERSONAL")
-CONTACT_NAMES = getnamelist()
-PHONE_NUMBERS = getprimaryphnumberlist()
-ROOT_WINDOW_WIDTH = 450 
+ROOT_WINDOW_WIDTH = 450
 ROOT_WINDOW_HEIGHT = 420
 MONOSPACE_ITALIC = "monospace 9 italic"
 MONOSPACE_BOLD = "monospace 10 bold"
@@ -971,4 +972,4 @@ LAYER_OFFSET = 25
 
 
 if __name__ == "__main__":
-    runGUI()
+    JsonHandler.write(runGUI(JsonHandler.read()))

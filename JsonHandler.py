@@ -1,5 +1,6 @@
 from Contact import Contact as Contact
 import json
+import os.path
 
 
 class JsonHandler:
@@ -20,9 +21,12 @@ class JsonHandler:
     @staticmethod
     def read() -> list[Contact]:
         contact_list = []
-        with open("Contacts.json", "r") as JSONfile:
-            json_data = json.load(JSONfile)  
-        for contact_info in json_data:
-            contact_list.append(Contact(*list(contact_info.values())))
-        
+        if not os.path.exists("Contacts.json") or os.path.getsize("Contacts.json") == 0:
+            return contact_list
+        else :
+            with open("Contacts.json", "r") as JSONfile:
+                json_data = json.load(JSONfile)  
+            for contact_info in json_data:
+                contact_list.append(Contact(*list(contact_info.values())))
+            
         return contact_list
