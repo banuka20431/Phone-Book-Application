@@ -5,7 +5,7 @@ This project implements a contacts manager application with python.
 
 It allows users to,
 - Save new contacts
-- Add 
+- Add new phone numbers to the existing contacts
 - Viwe contacts' information 
 - Update contacts' information (Replace existing numbers, Rename contact's name, Change contact's email)
 - Delete contacts' information
