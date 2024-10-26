@@ -21,12 +21,14 @@ class JsonHandler:
     @staticmethod
     def read() -> list[Contact]:
         contact_list = []
-        if not os.path.exists("Contacts.json") or os.path.getsize("Contacts.json") == 0:
-            return contact_list
-        else :
+        if os.path.exists("Contacts.json") or os.path.getsize("Contacts.json") != 0:
             with open("Contacts.json", "r") as JSONfile:
                 json_data = json.load(JSONfile)  
             for contact_info in json_data:
                 contact_list.append(Contact(*list(contact_info.values())))
             
         return contact_list
+
+if __name__ == '__main__':
+    print("\n\tRun 'main.py'\n")
+    

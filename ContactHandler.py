@@ -1,4 +1,5 @@
 from Contact import Contact
+from DateTime import DateTime
 import re
 
 
@@ -33,7 +34,7 @@ class ContactHandler:
             return True
         return False
 
-    def __init__(self, contact_list: list[Contact], contact_types_arr: tuple, PASSKEY: str) -> None:
+    def __init__(self, contact_list: list[Contact], contact_types_arr: tuple, PASSKEY: str, ) -> None:
         self.contact_list = contact_list
         self.contact_type_names = contact_types_arr
         self.PASSKEY = PASSKEY
@@ -44,10 +45,9 @@ class ContactHandler:
             contact_email = self.__getemail()
             contact_phoneNumbers = [self.__getphonenumber(), ]
             contact_types = [self.__getcontacttype(), ]
-            return Contact(contact_name, contact_email, contact_phoneNumbers, contact_types)
+            return Contact(contact_name, contact_email, contact_phoneNumbers, contact_types, DateTime.getdatetime(), DateTime.getdatetime())
         else:
             return Contact(*inf)
-        
     
     def search_contact(self) -> Contact | None:
         method = self.__getsearchmethod()
@@ -77,6 +77,7 @@ class ContactHandler:
                     selected_phone_number = existing_phone_numbers[self.displayMenus(existing_phone_numbers)]
                     contact.setPhoneNumber(selected_phone_number, self.__getcontacttype(), self.__getphonenumber(),
                                             True)
+        contact.set_modified_date()
         return contact
 
     def __getupdatefieldname(self) -> str:
@@ -131,4 +132,7 @@ class ContactHandler:
     def __getcontacttype(self) -> str:
         print('\nSELECT THE CONTACT TYPE >\n')
         return self.contact_type_names[self.displayMenus(self.contact_type_names)]
+    
+if __name__ == '__main__':
+    print("\n\tRun 'main.py'\n")
     

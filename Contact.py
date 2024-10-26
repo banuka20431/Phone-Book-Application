@@ -1,10 +1,14 @@
-class Contact:
+from DateTime import DateTime
 
-    def __init__(self, contact_name: str, contact_email: str, contact_phone_numbers: list[str], contact_types: list[str]):
+class Contact:
+    
+    def __init__(self, contact_name: str, contact_email: str, contact_phone_numbers: list[str], contact_types: list[str], created_date, modified_date):
         self.__Name = contact_name
         self.__Email = contact_email
         self.__PhoneNumbers = contact_phone_numbers
         self.__ContactTypes = contact_types
+        self.__Created_Date = created_date
+        self.__Modified_Date = modified_date
         
     def get_contact_name(self) -> str:
         return self.__Name
@@ -20,7 +24,13 @@ class Contact:
     
     def get_contact_type_list(self) -> list[str]:
         return self.__ContactTypes
-
+    
+    def get_created_date(self) -> str:
+        return self.__Created_Date
+    
+    def get_modified_date(self) -> str:
+        return self.__Modified_Date
+    
     def display_contact(self) -> None:
         
         print(
@@ -37,6 +47,8 @@ class Contact:
             print(f"\t{index_no}. {phone_number} [ {contact_type} ]")
             index_no += 1
         print('\n+---------------------------------------------------------+\n')
+        print(getattr(self, '_Contact__Modified_Date'))
+        print(getattr(self, '_Contact__Created_Date'))
     
     def setPhoneNumber(self, phone_number: str, contact_type: str, new_number: str=None, replace=False) -> None:
         if not replace:
@@ -61,7 +73,9 @@ class Contact:
         
     def setname(self, new_name: str) -> None:
         self.__Name = new_name
+    
+    def set_modified_date(self) -> str:
+        self.__Modified_Date = DateTime.getdatetime()
 
 if __name__ == '__main__':
     print("\n\tRun 'main.py'\n")
-    

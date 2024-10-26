@@ -93,17 +93,16 @@ if __name__ == "__main__":
         '''
     )
 
-    print('Importing existing contacts..: ', end='')
+    print('Importing Existing Contacts..: ', end='')
     if not os.path.exists(JSON_FILE_PATH):
-        print('FAILED -> file couldn\'t be found')
-        print('Creating new file for saving contacts..: ', end='')
+        print('FAILED -> Contacts File couldn\'t be Found')
+        print('Creating New Contacts File..: ', end='')
         open(JSON_FILE_PATH, 'w').close()
         print('OK')
     else:
         print('OK')
 
     contact_list = JsonHandler.read()
-    
     contact_handler = ContactHandler(contact_list, contact_types, PASSKEY)
 
     # Main-block begins here
