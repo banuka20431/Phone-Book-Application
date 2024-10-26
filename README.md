@@ -62,7 +62,7 @@ A graphical user interface (GUI) is also implemented with `python's Tkinter libr
 ## Application Overview
 
  - Home
- - ![Home](https://github.com/user-attachments/assets/7f7071aa-758c-41fa-b0f3-84bf55c9bdc5)
+ <img src="https://github.com/user-attachments/assets/7f7071aa-758c-41fa-b0f3-84bf55c9bdc5">
 
 - Save Contact Window
 - ![Save](https://github.com/user-attachments/assets/0cb11fc8-abf4-4ad4-817f-94eb786c06c9)
