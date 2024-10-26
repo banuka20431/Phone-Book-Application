@@ -1,19 +1,19 @@
 
 # Phone Book App
 
-This project implements a contacts manager application with python. 
+This project implements a contacts manager application with Python. 
 
 It allows users to,
 - Save new contacts
 - Add new phone numbers to the existing contacts
-- Viwe contacts' information 
+- View contacts' information 
 - Update contacts' information (Replace existing numbers, Rename contact's name, Change contact's email)
 - Delete contacts' information
 
-In addition to those main functionalities there are couple of more additional ones,
-- users can change the primary contact number if there are more than one phone number (default : phone number that entered while saving that specific contact)
+In addition to those main functionalities, there are a couple of more additional ones,
+- users can change the primary contact number if there is more than one phone number (default: phone number entered while saving that specific contact)
  
-There is also a graphical user interface (GUI) implemented with `python's tkinter library` for making the application farther more interactive.
+A graphical user interface (GUI) is also implemented with `python's Tkinter library` to make the application more interactive.
 
 
 ## Requirements
