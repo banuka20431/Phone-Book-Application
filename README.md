@@ -61,13 +61,11 @@ A graphical user interface (GUI) is also implemented with `python's Tkinter libr
 
 ## Application Overview
 
----
-
  - Home
-   ![Home](https://github.com/user-attachments/assets/7f7071aa-758c-41fa-b0f3-84bf55c9bdc5)
+ - ![Home](https://github.com/user-attachments/assets/7f7071aa-758c-41fa-b0f3-84bf55c9bdc5)
 
 - Save Contact Window
-  ![Save](https://github.com/user-attachments/assets/0cb11fc8-abf4-4ad4-817f-94eb786c06c9)
+- ![Save](https://github.com/user-attachments/assets/0cb11fc8-abf4-4ad4-817f-94eb786c06c9)
 
 - Contact Info Window
   ![Info](https://github.com/user-attachments/assets/f93e3c40-f2a5-4815-947f-4ed854ad507a)
