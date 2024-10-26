@@ -59,5 +59,3 @@ A graphical user interface (GUI) is also implemented with `python's Tkinter libr
     python main.py
     ```
 
-    ![image](https://github.com/user-attachments/assets/9c7ed0d2-2d1f-4206-b94a-59524b575b07)
-
