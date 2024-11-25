@@ -1,7 +1,7 @@
 
 # Phone Book App
 
-This project implements a contacts manager application with python. 
+This project implements a contacts manager application with Python. 
 
 It allows users to,
 - Save new contacts
