@@ -21,7 +21,7 @@ class JsonHandler:
     @staticmethod
     def read() -> list[Contact]:
         contact_list = []
-        if os.path.exists("Contacts.json") or os.path.getsize("Contacts.json") != 0:
+        if os.path.exists("Contacts.json") and os.path.getsize("Contacts.json") != 0:
             with open("Contacts.json", "r") as JSONfile:
                 json_data = json.load(JSONfile)  
             for contact_info in json_data:

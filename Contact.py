@@ -31,6 +31,9 @@ class Contact:
     def get_modified_date(self) -> str:
         return self.__Modified_Date
     
+    def get_primary_phone_number(self) -> str:
+        return self.__PhoneNumbers[0]
+    
     def display_contact(self) -> None:
         
         print(
@@ -39,7 +42,7 @@ class Contact:
 
 \t Name : {self.__Name}
 \t Email : {self.__Email}
-\t\t Phone Numbers 
+\n\t\t Phone Numbers 
 """
         )
         index_no = 1
@@ -58,21 +61,26 @@ class Contact:
             index_of_existing_number = self.__PhoneNumbers.index(phone_number)
             self.__PhoneNumbers[index_of_existing_number] = new_number
             self.__ContactTypes[index_of_existing_number] = contact_type
+        self.set_modified_date()
 
     def setPhoneNumberList(self, new_phone_no_list: list[str]) -> None:
         self.__PhoneNumbers = new_phone_no_list
+        self.set_modified_date()
             
     def setContactType(self, contactType: str) -> None:
         self.__ContactTypes.append(contactType)
     
     def setContactTypes(self, new_contact_types_list: list[str]) -> None:
         self.__ContactTypes = new_contact_types_list
+        self.set_modified_date()
         
     def setEmail(self, new_email: str) -> None:
         self.__Email = new_email
+        self.set_modified_date()
         
     def setname(self, new_name: str) -> None:
         self.__Name = new_name
+        self.set_modified_date()
     
     def set_modified_date(self) -> str:
         self.__Modified_Date = DateTime.getdatetime()

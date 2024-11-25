@@ -70,7 +70,7 @@ def main(selected_action: str, contact_list) -> list[Contact]:
             else:
                 print("\nIncorrect passkey!")
         case 'Run GUI':
-            contact_list = gui.runGUI(contact_list)
+            gui.main()
     return contact_list
 
 
@@ -84,11 +84,10 @@ if __name__ == "__main__":
 
     print(
         '''
-        -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-
+        
         =================================================
         +---------------+  PHONE BOOK  +----------------+
         =================================================
-        _-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
         
         '''
     )
