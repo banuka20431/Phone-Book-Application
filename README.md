@@ -61,20 +61,20 @@ There is also a graphical user interface (GUI) implemented with `python's tkinte
 ## Applicaion Overveiw
 <ul>
  <li>Home</li>
- ---
+ 
  ![image](https://github.com/user-attachments/assets/8f6a50cd-af62-4c7e-9637-7f0f52e0bc89)
  
 <li>Save New Contact</li>
- ---
+ 
  ![image](https://github.com/user-attachments/assets/fdef7761-bdd3-476b-a473-45fc5ea26894)
  
  <li>Update Contact</li>
- ---
+ 
  ![image](https://github.com/user-attachments/assets/21eee7dd-5981-41d3-95c6-a3cd09874bda)
  ![image](https://github.com/user-attachments/assets/84d97474-814d-4379-a39f-203cf1d71c0b)
  ![image](https://github.com/user-attachments/assets/3b1a1f61-8823-44b1-8f1b-1c8ba94997ca)
  
  <li>View Contact Info</li>
- ---
+ 
  ![image](https://github.com/user-attachments/assets/adae01a9-fa5e-4d55-acbe-3a8acdc16d3c)
 </ul>
