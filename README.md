@@ -58,7 +58,7 @@ A graphical user interface (GUI) is also implemented with `python's Tkinter libr
     ```bash
     python main.py
     ```
-## Applicaion Overveiw
+## Application Overview
 <ul>
  <li>Home</li>
  
